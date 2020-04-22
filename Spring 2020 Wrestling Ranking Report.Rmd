@@ -1,0 +1,47 @@
+---
+title: "Spring 2020 Wrestling Ranking Report"
+author: "Sam Unger"
+date: "April 19, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Introduction
+
+Wrestling remains an underdeveloped sport in terms of ranking and prediction literature, especially in comparison to more major sports, such as baseball. This disparity is even further exacerbated when looking specifically at the high school level, for which the vast majority of wrestling data depends solely on a single stats site, [trackwrestling.com](). In addition to the detrimental effects this has on potential player analysis, such analytic shortcomings also have a direct impact on the coaches, wrestlers, and families involved with the sport on a high school level due to the excessive amount of time and effort spent ranking wrestlers and deciding matchups manually at the beginning of each wrestling meet. Thus, there exists much potential value in developing ranking algorithms for use on high school wrestling data, especially when implementing those algorithms in a user-friendly format easily deployable by coaches and wrestlers. 
+
+## Material and Methods
+
+### Dataset
+
+For this project, we scraped [trackwrestling.com]() for recent data from the 2019-2020 High School Boys Wrestling season of the New York State Public High School Athletic Association. 
+
+- EDA plots for data
+- General Comments
+
+### Algorithms
+
+- Elo and WP
+
+### Evaluation
+
+- Predictive Accuracy
+- Train and test sets
+
+## Results and Follow-Up Analysis
+
+- Acccuracy: Elo vs WP
+- Certainty: Elo vs WP
+- Predictive Accuracy (how good for how long)
+- Special cases (few matches, cold starts, follow specific player, etc.)
+
+## Discussion/Conclusion
+
+- Elo vs WP
+- Document difficulties
+- Future work on code itself
+- Future work in field
