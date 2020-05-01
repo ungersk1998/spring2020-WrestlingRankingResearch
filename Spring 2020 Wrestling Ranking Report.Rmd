@@ -1,7 +1,7 @@
 ---
 title: "Spring 2020 Wrestling Ranking Report"
 author: "Sam Unger"
-date: "April 19, 2020"
+date: "May 1, 2020"
 output: pdf_document
 ---
 
@@ -12,20 +12,68 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-Wrestling remains an underdeveloped sport in terms of ranking and prediction literature, especially in comparison to more major sports, such as baseball. This disparity is even further exacerbated when looking specifically at the high school level, for which the vast majority of wrestling data depends solely on a single stats site, [trackwrestling.com](). In addition to the detrimental effects this has on potential player analysis, such analytic shortcomings also have a direct impact on the coaches, wrestlers, and families involved with the sport on a high school level due to the excessive amount of time and effort spent ranking wrestlers and deciding matchups manually at the beginning of each wrestling meet. Thus, there exists much potential value in developing ranking algorithms for use on high school wrestling data, especially when implementing those algorithms in a user-friendly format easily deployable by coaches and wrestlers. 
+In high school wrestling, manual ranking processes are commonplace and waste an excessive amount of time and
+effort that could be saved using some sort of automated ranking system. Anecdotal evidence suggests that, on
+average, ??? hours/minutes are spent at each wrestling meet manually ranking the competing wrestlers before any
+bouts can even begin. This is time that could otherwise belong to the coaches, wrestlers, and families involved
+with the sport if a reliable automated ranking system were utilized. Thus, there exists much potential value in
+developing ranking algorithms for use on high school wrestling data, especially when implementing those
+algorithms in a user-friendly format easily deployable by coaches and wrestlers. Additional requirements for
+such ranking algorithms include easily updatable rankings as well as a sensible cold-start ranking methodology
+for wrestlers without previous matches. To satisfy these requirements, we follow suggestions from previous
+wrestling ranking literature and develop an Elo rating system to rank the wrestlers in our dataset, testing our
+rankings by predicting the winners of already completed matches and comparing those predictions to the true winners of those matches. 
+
+## Literature Review
+
+We consulted a research article titled ["Ranking and Prediction of Collegiate Wrestling"](https://content.iospress.com/articles/journal-of-sports-analytics/jsa0024)
+written by University of Iowa affiliates Kristina Gavin Bigsby and Jeffrey W. Ohlmann and published in April
+2017 in the Journal of Sports Analytics. In this paper, Bigsby and Ohlmann investigate various collegiate
+wrestling ranking methods, including win percentage and Elo ratings, using data from the 2013-2014 NCAA
+Division I wrestling season. Their analysis suggests that "Elo presents an especially attractive alternative to
+current ranking systems for college wrestling." Building off Bigsby and Ohlmann's promising results, we
+implement an Elo rating method on our high school wrestling data to investigate the algorithm's efficacy at the
+lower competitive level. 
 
 ## Material and Methods
 
 ### Dataset
 
-For this project, we scraped [trackwrestling.com]() for recent data from the 2019-2020 High School Boys Wrestling season of the New York State Public High School Athletic Association. 
+For this project, we scraped [trackwrestling.com](http://trackwrestling.com) for recent data from the 2019-2020
+High School Boys Wrestling season of the New York State Public High School Athletic Association. See our code
+on [GitHub](https://github.com/ungersk1998/spring2020-WrestlingRankingResearch) for full details on the
+webscraping and data preparation used in this project. From our raw data, we filtered out matches with
+non-competitive victory types, such as forfeit, injury, disqualification, and bye. This resulted in a final
+dataset that includes 6630 individual wrestling matches, each containing names of the winning and losing
+wrestlers as well as their weight class and schools, along with information on the event name and date and the
+points awarded to the wrestlers during the match. 3868 unique wrestlers make up the competitors in these 6630
+matches. One very important note regarding this data is that it does not contain a full season of matches; due
+to complications with scraping data from [trackwrestling.com](http://trackwrestling.com), our earliest records
+are only from late January 2020, well into the New York State high school wrestling season. As such, we believe
+that all of our results, although already promising, could be much better realized in the future, when we can
+track a season fully from its start to have more ideal data. 
 
 - EDA plots for data
 - General Comments
 
 ### Algorithms
 
-- Elo and WP
+The primary prediction algorithms we test in this project are win percentage and Elo. Our win percentage
+predictor serves as our baseline for comparison, given that it simply predicts the winner of a match to be the
+wrestler with the higher win percentage. In our implementation, cold-start issues are resolved by assigning to
+new wrestlers (i.e. 0 matches competed) the average win percentage of their school's wrestlers, operating under
+the assumption that a team of wrestlers should have relatively similar skill levels. In cases where a new
+wrestler does not have any teammate data with which to impute, we assign them the average win percentage of
+wrestlers who competed in a similar number of matches, assuming experience to correlate positively with skill.
+
+As for the Elo algorithm, it is a computationally simple, yet highly flexible method. Elo treats prior ratings
+as an indicator of wrestler strength, using the difference in ratings between competitors at the time of a
+match to compute an expected probability of victory. Ratings after the match are adjusted based upon the
+disparity between this expected result and the actual result, with more rating points earned for an upset than
+a predictable win. We implement Elo rating in Python via the [Elote](https://pypi.org/project/elote/) package
+by Will McGinnis. We take our parameter values for the Elo algorithm from the Bigsby and Ohlmann research
+article, which suggests an initial rating of 1000 for each wrestler and a $K$ value, which determines the
+ratings' sensitivity to a new match, of 225.
 
 ### Evaluation
 
