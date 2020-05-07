@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
@@ -14,15 +14,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In high school wrestling, manual ranking processes are commonplace and waste an excessive amount of time and
 effort that could be saved using some sort of automated ranking system. Anecdotal evidence suggests that, on
-average, ??? hours/minutes are spent at each wrestling meet manually ranking the competing wrestlers before any
-bouts can even begin. This is time that could otherwise belong to the coaches, wrestlers, and families involved
-with the sport if a reliable automated ranking system were utilized. Thus, there exists much potential value in
-developing ranking algorithms for use on high school wrestling data, especially when implementing those
-algorithms in a user-friendly format easily deployable by coaches and wrestlers. Additional requirements for
-such ranking algorithms include easily updatable rankings as well as a sensible cold-start ranking methodology
-for wrestlers without previous matches. To satisfy these requirements, we follow suggestions from previous
-wrestling ranking literature and develop an Elo rating system to rank the wrestlers in our dataset, testing our
-rankings by predicting the winners of already completed matches and comparing those predictions to the true winners of those matches. 
+average, ??? hours/minutes are spent at each wrestling meet manually ranking the competing wrestlers before
+any bouts can even begin. This is time that could otherwise belong to the coaches, wrestlers, and families
+involved with the sport if a reliable automated ranking system were utilized. Thus, there exists much
+potential value in developing ranking algorithms for use on high school wrestling data, especially when
+implementing those algorithms in a user-friendly format easily deployable by coaches and wrestlers. Additional
+requirements for such ranking algorithms include easily updatable rankings as well as a sensible cold-start
+ranking methodology for wrestlers without previous matches. To satisfy these requirements, we follow
+suggestions from previous wrestling ranking literature and develop an Elo rating system to rank the wrestlers
+in our dataset, testing our rankings by predicting the winners of already completed matches and comparing
+those predictions to the true winners of those matches. 
 
 ## Literature Review
 
@@ -30,28 +31,28 @@ We consulted a research article titled ["Ranking and Prediction of Collegiate Wr
 written by University of Iowa affiliates Kristina Gavin Bigsby and Jeffrey W. Ohlmann and published in April
 2017 in the Journal of Sports Analytics. In this paper, Bigsby and Ohlmann investigate various collegiate
 wrestling ranking methods, including win percentage and Elo ratings, using data from the 2013-2014 NCAA
-Division I wrestling season. Their analysis suggests that "Elo presents an especially attractive alternative to
-current ranking systems for college wrestling." Building off Bigsby and Ohlmann's promising results, we
-implement an Elo rating method on our high school wrestling data to investigate the algorithm's efficacy at the
-lower competitive level. 
+Division I wrestling season. Their analysis suggests that "Elo presents an especially attractive alternative
+to current ranking systems for college wrestling." Building off Bigsby and Ohlmann's promising results, we
+implement an Elo rating method on our high school wrestling data to investigate the algorithm's efficacy at
+the lower competitive level. 
 
 ## Material and Methods
 
 ### Dataset
 
-For this project, we scraped [trackwrestling.com](http://trackwrestling.com) for recent data from the 2019-2020
-High School Boys Wrestling season of the New York State Public High School Athletic Association. See our code
-on [GitHub](https://github.com/ungersk1998/spring2020-WrestlingRankingResearch) for full details on the
-webscraping and data preparation used in this project. From our raw data, we filtered out matches with
+For this project, we scraped [trackwrestling.com](http://trackwrestling.com) for recent data from the
+2019-2020 High School Boys Wrestling season of the New York State Public High School Athletic Association. See
+our code on [GitHub](https://github.com/ungersk1998/spring2020-WrestlingRankingResearch) for full details on
+the webscraping and data preparation used in this project. From our raw data, we filtered out matches with
 non-competitive victory types, such as forfeit, injury, disqualification, and bye. This resulted in a final
 dataset that includes 6630 individual wrestling matches, each containing names of the winning and losing
 wrestlers as well as their weight class and schools, along with information on the event name and date and the
 points awarded to the wrestlers during the match. 3868 unique wrestlers make up the competitors in these 6630
 matches. One very important note regarding this data is that it does not contain a full season of matches; due
 to complications with scraping data from [trackwrestling.com](http://trackwrestling.com), our earliest records
-are only from late January 2020, well into the New York State high school wrestling season. As such, we believe
-that all of our results, although already promising, could be much better realized in the future, when we can
-track a season fully from its start to have more ideal data. 
+are only from late January 2020, well into the New York State high school wrestling season. As such, we
+believe that all of our results, although already promising, could be much better realized in the future, when
+we can track a season fully from its start to have more ideal data. 
 
 - EDA plots for data
 - General Comments
@@ -133,14 +134,44 @@ Note that even when Wrestler B upsets Wrestler A, he still has a lower rating af
 the ratings to be more sensitive, increasing $K$ would increase how many points are exchanged as a result of
 the match. 
 
-As described and demonstrated above, one can see how the Elo algorithm's built-in control over sensitivity, ratings, and prediction make it a very promising technique for use in competitive wrestling. 
+As described and demonstrated above, one can see how the Elo algorithm's built-in control over sensitivity,
+ratings, and prediction make it a very promising technique for use in competitive wrestling. 
 
 ### Evaluation
 
-- Predictive Accuracy
-- Train and test sets
+To test our Win Percentage and Elo algorithms, we divided our filtered dataset into train and test sets of
+various sizes, with train sets including between 50% and 90% of the total matches. The train and test sets
+were split temporally so that our testing process better reflects the real-world process of predicting
+matchups by past match data. Once train and test sets are created, we train our algorithms on the train sets
+then accept info from the test set matches, such as wrestler and school names, to form our predictions for the
+winners of the test set matches. Algorithms were judged on their predictive accuracy, as calculated by number
+of correctly predicted winners divided by number of matches in the test set.
 
 ## Results and Follow-Up Analysis
+
+Here are the prediction accuracy results of the Win Percentage algorithm for various train set sizes:
+
+![](/~/Plots/WinPerc/win_perc_pred_accuracy.png)
+
+With the mid-range train set sizes near 50%, we see the Win Percentage algorithm correctly predict roughly 55%
+of test set matches, barely better than randomly guessing the winner of a one-on-one wrestling match. However,
+we see significant improvement on the algorithm's predictive performance, climbing to 84% prediction accuracy,
+once the train set contains more than 70% of the available matches. This result is somewhat surprising to us,
+since we did not expect win percentage, being such a naive predictor, to perform as well as the 80% accuracy
+range at any test set size.
+
+Now, for comparison, here are the prediction accuracy results of the Elo algorithm for various train set
+sizes:
+
+![](/~/Plots/Elo/elo_pred_accuracy.png)
+
+Notably, Elo demonstrates much worse performance than Win Percentage at smaller train set sizes. In fact, with
+prediction accuracy barely surpassing 30%, using Elo is theoretically worse than randomly guessing match
+winners. However, at larger train set sizes, the accuracy of the Elo algorithm improves dramatically, even
+moreso than the Win Percentage algorithm, reaching a peak prediction accuracy of approximately 86%. While this
+appears to be only a slight improvement from the Win Percentage algorithm, it agrees with the results found in
+Bigsby and Ohlmann's wrestling ranking paper, signaling that Elo consistently (albeit not drastically)
+outperforms Win Percentage as a predictor of wrestling matches.
 
 - Acccuracy: Elo vs WP
 - Certainty: Elo vs WP
