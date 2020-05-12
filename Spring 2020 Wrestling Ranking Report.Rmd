@@ -1,7 +1,7 @@
 ---
 title: "Spring 2020 Wrestling Ranking Report"
 author: "Sam Unger"
-date: "May 7, 2020"
+date: "May 12, 2020"
 output: pdf_document
 ---
 
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 In high school wrestling, manual ranking processes are commonplace and waste an excessive amount of time and
 effort that could be saved using some sort of automated ranking system. Anecdotal evidence suggests that, on
-average, ??? hours/minutes are spent at each wrestling meet manually ranking the competing wrestlers before
+average, 1-2 hours are spent at each wrestling meet manually ranking the competing wrestlers before
 any bouts can even begin. This is time that could otherwise belong to the coaches, wrestlers, and families
 involved with the sport if a reliable automated ranking system were utilized. Thus, there exists much
 potential value in developing ranking algorithms for use on high school wrestling data, especially when
@@ -54,19 +54,16 @@ are only from late January 2020, well into the New York State high school wrestl
 believe that all of our results, although already promising, could be much better realized in the future, when
 we can track a season fully from its start to have more ideal data. 
 
-- EDA plots for data
-- General Comments
-
 ### Algorithms
 
 The primary prediction algorithms we test in this project are win percentage and Elo. Our win percentage
 predictor serves as our baseline for comparison, given that it simply predicts the winner of a match to be the
 wrestler with the higher win percentage over the current season. In our implementation, cold-start issues are
 resolved by assigning to new wrestlers (i.e. 0 matches competed) the average win percentage of their school's
-wrestlers, operating under the assumption that a team of wrestlers should have relatively similar skill levels.
-In cases where a new wrestler does not have any teammate data with which to impute, we assign them the average
-win percentage of wrestlers who competed in a similar number of matches, assuming experience to correlate
-positively with skill.
+wrestlers, operating under the assumption that a team of wrestlers should have relatively similar skill
+levels. In cases where a new wrestler does not have any teammate data with which to impute, we assign them the
+average win percentage of wrestlers who competed in a similar number of matches, assuming experience to
+correlate positively with skill.
 
 As for the Elo algorithm, it is a computationally simple, yet highly flexible method. Elo treats prior ratings
 as an indicator of wrestler strength, using the difference in ratings between competitors at the time of a
@@ -88,7 +85,8 @@ $R$ is a wrestler's rating before the match, and $R_{init}$ is their initial rat
 
 2. Expected Result: $S_{exp}=\frac{R'}{R'+R'_{opp}}$
 
-$S_{exp}$ can be interpreted as the probability of winning plus half the probability of drawing. The $opp$ subscript denotes a variable corresponding to the wrestler's opponent.
+$S_{exp}$ can be interpreted as the probability of winning plus half the probability of drawing. The $opp$
+subscript denotes a variable corresponding to the wrestler's opponent.
 
 3. Update Rating (Winner): $R=R+K(1-S_{exp})$
 
@@ -140,7 +138,7 @@ ratings, and prediction make it a very promising technique for use in competitiv
 ### Evaluation
 
 To test our Win Percentage and Elo algorithms, we divided our filtered dataset into train and test sets of
-various sizes, with train sets including between 50% and 90% of the total matches. The train and test sets
+various sizes, with train sets including between 10% and 90% of the total matches. The train and test sets
 were split temporally so that our testing process better reflects the real-world process of predicting
 matchups by past match data. Once train and test sets are created, we train our algorithms on the train sets
 then accept info from the test set matches, such as wrestler and school names, to form our predictions for the
@@ -149,38 +147,70 @@ of correctly predicted winners divided by number of matches in the test set.
 
 ## Results and Follow-Up Analysis
 
-Here are the prediction accuracy results of the Win Percentage algorithm for various train set sizes:
+Here are the prediction accuracy results of the Win Percentage algorithm for train set sizes ranging from 10
+to 90%:
 
-![](/~/Plots/WinPerc/win_perc_pred_accuracy.png)
+![](Plots/WinPerc/win_perc_pred_accuracy.png)
 
 With the mid-range train set sizes near 50%, we see the Win Percentage algorithm correctly predict roughly 55%
 of test set matches, barely better than randomly guessing the winner of a one-on-one wrestling match. However,
-we see significant improvement on the algorithm's predictive performance, climbing to 84% prediction accuracy,
-once the train set contains more than 70% of the available matches. This result is somewhat surprising to us,
-since we did not expect win percentage, being such a naive predictor, to perform as well as the 80% accuracy
-range at any test set size.
+we see steady improvement on the algorithm's predictive performance, climbing to 69% prediction accuracy,
+once the train set contains more than 90% of the available matches. This result is somewhat surprising to us,
+since we did not expect win percentage, being such a naive predictor, to perform near 70% accuracy
+range at any train set size.
 
-Now, for comparison, here are the prediction accuracy results of the Elo algorithm for various train set
+Now, for comparison, here are the prediction accuracy results of the Elo algorithm for the various train set
 sizes:
 
-![](/~/Plots/Elo/elo_pred_accuracy.png)
+![](Plots/Elo/elo_pred_accuracy.png)
 
-Notably, Elo demonstrates much worse performance than Win Percentage at smaller train set sizes. In fact, with
-prediction accuracy barely surpassing 30%, using Elo is theoretically worse than randomly guessing match
-winners. However, at larger train set sizes, the accuracy of the Elo algorithm improves dramatically, even
-moreso than the Win Percentage algorithm, reaching a peak prediction accuracy of approximately 86%. While this
-appears to be only a slight improvement from the Win Percentage algorithm, it agrees with the results found in
-Bigsby and Ohlmann's wrestling ranking paper, signaling that Elo consistently (albeit not drastically)
-outperforms Win Percentage as a predictor of wrestling matches.
+Notably, Elo demonstrates far worse performance than Win Percentage at smaller train set sizes. In fact, with
+prediction accuracy barely reaching 30% at the 50% train size, using Elo is theoretically worse than randomly
+guessing match winners. However, Elo's accuracy grows rapidly with train set size, even moreso than the Win
+Percentage algorithm, and effectively catches up to Win Percentage with a peak prediction accuracy of
+approximately 68%.
 
-- Acccuracy: Elo vs WP
-- Certainty: Elo vs WP
-- Predictive Accuracy (how good for how long)
-- Special cases (few matches, cold starts, follow specific player, etc.)
+To investigate the matches where incorrect predictions are made, we look specifically at the most accurate 
+implementations of our algorithms (the 90% train set size). In this run, there were 663 test matches to 
+predict, of which the Win Percentage algorithm incorrectly predicted 207 and gave no prediction for 83. 
+Meanwhile, the Elo algorithm incorrectly predicted the winner of 213 matches and gave no prediction for 101.
+Of the 207 matches incorrectly predicted by Win Percentage, 156 (75.4%) were also incorrectly predicted by
+Elo. Considering these extreme similarities, there does not exist much evidence to suggest that combining the
+two algorithms into an ensemble method would be particularly effective. Thus, we focus our efforts on 
+improving the Elo algorithm.
+
+While the initial results show no significant difference between the predictive accuracy of the two
+algorithms, the rapid improvement of Elo with train set size is very promising, especially since real-life 
+usage will always involve the most recent match data. Furthermore, the Elo algorithm producing these promising
+results is naively using the same initial rating for each new player in the wrestling data. To further 
+investigate the potential effectiveness of the Elo algorithm, we try implementing dynamic initial ratings by
+leveraging some of the same logic we used to bolster our Win Percentage algorithm, such as using the average
+rating of a new wrestler's teammates in place of a static initial rating.
+
+The primary modification we implemented was changing the static initial rating of 1000 to a dynamic initial
+rating calculated as the mean rating of all the new wrestler's school teammates (initial ratings of 1000 are
+still applied to wrestlers whose school has not had a wrestler compete yet in the dataset). As discussed
+earlier when describing a similar implementation for the Win Percentage algorithm, this dynamic cold-start solution operates under the assumption that all members of a single school's wrestling team share a roughly 
+similar skill level. The accuracy results of our modified Elo algorithm are shown below. 
+
+![](Plots/Elo/dynamic_pred_accuracy.png)
+
+We see that the Dynamic Elo algorithm, with 70.4% peak prediction accuracy, outperforms both the original Elo
+algorithm (68%) and the Win Percentage algorithm (69%) using the same train and test set (90% train size).
+While relatively small, this increase in accuracy is comfortably in line with the results found in Bigsby and
+Ohlmann's wrestling ranking paper.
 
 ## Discussion/Conclusion
 
-- Elo vs WP
-- Document difficulties
-- Future work on code itself
-- Future work in field
+Our results show that Elo, a ranking algorithm designed for mind sports with one-person teams (such as chess),
+performs at a similar level to Win Percentage with regard to the prediction of wrestling match winners, and 
+potentially at a higher level given minor modifications to the initial ratings used in the algorithm. Seeing
+the success of our Elo modification, we believe leveraging knowledge of a wrestler's teammates is a valuable
+and underutilized practice that should be used whenever attempting to apply Elo to a sport in which team
+members can be reasonably assumed to share a similar skill level. That being said, the reliability of
+conclusions drawn from the work done in this project is heavily hindered by our small dataset and the
+technical difficulties surrounding it. In particular, the rapid increase in accuracy with train size which we
+observed in both the Elo and Dynamic Elo graphs suggests that these algorithms would benefit highly from more
+long-term match data. So, while our current results already show promise, we would be interested in
+accumulating a full season of data at some point in the future to rerun our algorithms and derive more
+reliable results.
